@@ -1,19 +1,19 @@
-# 🎬 9:16 Blur Video İşleyici
+# 🎬 9:16 / 16:9 Blur Video İşleyici
 
-📱 **Dikey video formatına uygun hale getirilmiş videolar** oluşturmak mı istiyorsun?  
-🎞️ Bu araç, videolarını 9:16 oranına getirir, arka planı bulanıklaştırır ve çoklu dosyayı aynı anda işleyebilir!
+📱 Dikey (9:16) ya da 🖥️ Yatay (16:9) video formatına uygun hale getirilmiş videolar mı istiyorsun?<br>
+🎞️ Bu araç, videolarını seçtiğin orana göre dönüştürür, arka planı bulanıklaştırır ve çoklu dosyayı aynı anda işler!
 
 ---
 
 ## 🚀 Özellikler
 
+✅ Dikey veya yatay video formatı seçimi  
 ✅ Çoklu video seçimi  
 ✅ Her video için ilerleme çubuğu ve durum bildirimi  
-✅ 9:16 (portre) oranına uygun hale getirme  
-✅ Blur arka plan efekti (YouTube Shorts, Instagram Reels, TikTok için ideal)  
-✅ FFmpeg ile yüksek performanslı işlem  
-✅ Modern ve kullanıcı dostu arayüz (PyQt5)  
-✅ 📁 Çıktılar `output_videos` klasörüne otomatik kaydedilir  
+✅ Blur arka plan efekti (YouTube Shorts, Reels, TikTok ve YouTube için ideal)  
+✅ FFmpeg ile yüksek performanslı işleme  
+✅ Modern ve kullanıcı dostu PyQt5 arayüzü  
+✅ 📁 Çıktılar output_videos klasörüne otomatik kaydedilir 
 
 ---
 
