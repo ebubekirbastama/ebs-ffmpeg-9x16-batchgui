@@ -4,7 +4,7 @@ import subprocess
 import time
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog,
-    QProgressBar, QLabel, QGridLayout, QMessageBox
+    QProgressBar, QLabel, QGridLayout, QMessageBox, QComboBox
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
@@ -14,23 +14,31 @@ class VideoProcessor(QThread):
     progress_update = pyqtSignal(int, int)  # index, percent
     status_update = pyqtSignal(int, str, str)  # index, emoji, status text
 
-    def __init__(self, index, input_path):
+    def __init__(self, index, input_path, mode):
         super().__init__()
         self.index = index
         self.input_path = input_path
+        self.mode = mode  # "vertical" or "horizontal"
 
     def run(self):
         filename = os.path.basename(self.input_path)
         name, ext = os.path.splitext(filename)
         output_path = os.path.join(OUTPUT_DIR, f"{name}.mp4")
 
+        if self.mode == "vertical":
+            resolution = "1080x1920"
+        else:
+            resolution = "1920x1080"
+
+        width, height = resolution.split("x")
+
         cmd = [
             "ffmpeg", "-y", "-i", self.input_path, "-filter_complex",
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,"
             "boxblur=40:1,scale='trunc(iw/2)*2':'trunc(ih/2)*2'[blurred];"
-            "[0:v]scale=w=1080:h=1920:force_original_aspect_ratio=decrease,"
+            f"[0:v]scale=w={width}:h={height}:force_original_aspect_ratio=decrease,"
             "scale='trunc(iw/2)*2':'trunc(ih/2)*2'[scaled];"
-            "color=white:s=1080x1920[c];"
+            f"color=white:s={resolution}[c];"
             "[c][blurred]overlay[bg];"
             "[bg][scaled]overlay=(W-w)/2:(H-h)/2:shortest=1",
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "copy", output_path
@@ -38,10 +46,9 @@ class VideoProcessor(QThread):
 
         try:
             self.status_update.emit(self.index, "⏳", f"{filename} işleniyor...")
-            # Simüle edilmiş ilerleme
             for i in range(1, 101, 5):
                 self.progress_update.emit(self.index, i)
-                time.sleep(0.1)  # bu sadece görsellik için
+                time.sleep(0.1)
 
             subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             self.progress_update.emit(self.index, 100)
@@ -52,11 +59,16 @@ class VideoProcessor(QThread):
 class VideoGUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("🎬 9:16 Blur Video İşleyici")
-        self.resize(700, 500)
+        self.setWindowTitle("🎬 Video Blur İşleyici")
+        self.resize(750, 550)
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
+
+        self.mode_selector = QComboBox()
+        self.mode_selector.addItem("📱 Dikey (9:16)", userData="vertical")
+        self.mode_selector.addItem("🖥️ Yatay (16:9)", userData="horizontal")
+        self.layout.addWidget(self.mode_selector)
 
         self.select_btn = QPushButton("📂 Videoları Seç")
         self.select_btn.clicked.connect(self.select_files)
@@ -75,11 +87,12 @@ class VideoGUI(QWidget):
         files, _ = QFileDialog.getOpenFileNames(
             self, "Video Dosyalarını Seç", "", "Video Files (*.mp4 *.mov *.mts *.avi *.mkv)"
         )
-
         if not files:
             return
 
         self.clear_grid()
+        selected_mode = self.mode_selector.currentData()
+
         for i, file in enumerate(files):
             name = os.path.basename(file)
             label = QLabel(f"🎞 {name}")
@@ -93,7 +106,7 @@ class VideoGUI(QWidget):
 
             self.video_widgets.append((progress_bar, status))
 
-            thread = VideoProcessor(i, file)
+            thread = VideoProcessor(i, file, selected_mode)
             thread.progress_update.connect(self.update_progress)
             thread.status_update.connect(self.update_status)
             self.threads.append(thread)
